@@ -46,7 +46,7 @@ module sdram_controller(
     output        sdram_ras_n,		// SDRAM 行地址选通脉冲
     output        sdram_cas_n,		// SDRAM 列地址选通脉冲
     output        sdram_we_n,		// SDRAM 写允许位
-    output [ 1:0] sdram_ba,		    // SDRAM L-Bank地址线
+    output [ `SDRAM_BANK_WIDTH - 1:0] sdram_ba,		    // SDRAM L-Bank地址线
     output [`SDRAM_ROW_WIDTH-1:0] sdram_addr,	    // SDRAM 地址总线
     inout  [`SDRAM_DATA_WIDTH-1:0] sdram_data		// SDRAM 数据总线
     );

@@ -44,7 +44,7 @@ reg [`SDRAM_DATA_WIDTH-1:0] sdram_dout_r;	            //寄存从SDRAM中读取�
 //***************************************************** 
 
 //SDRAM 双向数据线作为输入时保持高阻态
-assign sdram_data = sdram_out_en ? sdram_din_r : 64'hzzzzzzzzzzzzzzzz;
+assign sdram_data = sdram_out_en ? sdram_din_r : {`SDRAM_DATA_WIDTH{1'bz}}; // 64'hzzzzzzzzzzzzzzzz;
 
 //输出SDRAM中读取的数据
 assign sdram_data_out = sdram_dout_r;

@@ -54,10 +54,10 @@ module	sdram_top(
 	output        sdram_ras_n,              //SDRAM 行有效
 	output        sdram_cas_n,              //SDRAM 列有效
 	output        sdram_we_n,               //SDRAM 写有效
-	output [ 1:0] sdram_ba,                 //SDRAM Bank地址
-	output [11:0] sdram_addr,               //SDRAM 行/列地址
+	output [ `SDRAM_BANK_WIDTH-1:0] sdram_ba,                 //SDRAM Bank地址
+	output [`SDRAM_ROW_WIDTH - 1:0] sdram_addr,               //SDRAM 行/列地址
 	inout  [`SDRAM_DATA_WIDTH-1:0] sdram_data,               //SDRAM 数据
-	output [ 7:0] sdram_dqm                 //SDRAM 数据掩码
+	output [ `SDRAM_DATA_WIDTH/8 - 1:0] sdram_dqm                 //SDRAM 数据掩码
     );
 
 //wire define
@@ -75,7 +75,7 @@ wire [`SDRAM_DATA_WIDTH-1:0]	sdram_dout;                     //从sdram中读出
 //**                    main code
 //***************************************************** 
 assign	sdram_clk = out_clk;                //将相位偏移时钟输出给sdram芯片
-assign	sdram_dqm = 8'b00000000;                  //读写过程中均不屏蔽数据线
+assign	sdram_dqm = {(`SDRAM_DATA_WIDTH/8){1'b0}};    // 8'b00000000;                  //读写过程中均不屏蔽数据线
 			
 //SDRAM 读写端口FIFO控制模块
 sdram_fifo_ctrl u_sdram_fifo_ctrl(

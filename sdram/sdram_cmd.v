@@ -39,7 +39,7 @@ module sdram_cmd(
     output            sdram_ras_n,	    //SDRAM行地址选通脉冲
     output            sdram_cas_n,	    //SDRAM列地址选通脉冲
     output            sdram_we_n,		//SDRAM写允许位
-    output reg [ 1:0] sdram_ba,		    //SDRAM的L-Bank地址线
+    output reg [ `SDRAM_BANK_WIDTH-1:0] sdram_ba,		    //SDRAM的L-Bank地址线
     output reg [`SDRAM_ROW_WIDTH-1:0] sdram_addr	    //SDRAM地址总线
     );
 

@@ -49,13 +49,13 @@ parameter  TCL_CLK	  = 10'd3;	        //列潜伏期
 parameter  TWR_CLK	  = 10'd2;	        //写入校正
 */
 
-parameter  TRP_CLK	  = 10'd2;	        //预充电有效周期
-parameter  TRC_CLK	  = 10'd9;	        //自动刷新周期
-parameter  TRSC_CLK	  = 10'd6;	        //模式寄存器设置时钟周期
-parameter  TRCD_CLK	  = 10'd2;	        //行选通周期
-parameter  TCL_CLK	  = 10'd3;	        //列潜伏期
-parameter  TWR_CLK	  = 10'd2;	        //写入校正
-parameter  FRESH_CYCLE	  = 12'd1562;	        //64ms/4096
+parameter  TRP_CLK	  = `SDRAM_TRP_CLK;	        //预充电有效周期
+parameter  TRC_CLK	  = `SDRAM_TRC_CLK;	        //自动刷新周期
+parameter  TRSC_CLK	  = `SDRAM_TRSC_CLK;	        //模式寄存器设置时钟周期
+parameter  TRCD_CLK	  = `SDRAM_TRCD_CLK;	        //行选通周期
+parameter  TCL_CLK	  = `SDRAM_TCL_CLK;	        //列潜伏期
+parameter  TWR_CLK	  = `SDRAM_TWR_CLK;	        //写入校正
+parameter  FRESH_CYCLE	  = `SDRAM_FRESH_CYCLE;	        //64ms/4096
                                         
 //reg define                            
 reg [14:0] cnt_200us;                   //SDRAM 上电稳定期200us计数器
@@ -113,7 +113,7 @@ always @ (posedge clk or negedge rst_n)
 always @ (posedge clk or negedge rst_n)
 	if(!rst_n) 
         sdram_ref_req <= 1'b0;
-	else if(cnt_refresh == (12'd1560) )    //else if(cnt_refresh == 12'd780) 
+	else if(cnt_refresh == (`FRESH_CYCLE - 2) )    //else if(cnt_refresh == 12'd780) 
         sdram_ref_req <= 1'b1;	        //刷新计数器计时达7812ns时产生刷新请求
 	else if(sdram_ref_ack) 
         sdram_ref_req <= 1'b0;		    //收到刷新请求响应信号后取消刷新请求 

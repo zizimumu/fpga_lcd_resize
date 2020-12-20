@@ -93,7 +93,7 @@ always @(posedge clk_50m or negedge rst_n) begin
     else if(counter >= 11'd1 && (counter <= TEST_LEN)) begin
             wr_en   <= 1'b1;            //写使能拉高
 			rd_en   <= 1'b0;
-            wr_data <=  counter;          //写入数据1~1024 64'h55aa55aa_00000000 +
+            wr_data <=   counter;          //写入数据1~1024 64'h55aa55aa_00000000 +
     end    
     else if(counter > TEST_LEN && (counter <= TEST_LEN*2)) begin
             wr_en   <= 1'b0;            //写使能拉高
@@ -133,7 +133,7 @@ always @(posedge clk_50m or negedge rst_n) begin
         error_flag <= 1'b0; 
 	end
     else if(rd_en && rd_counter >= 32'd1) begin
-		if (rd_data != (  rd_counter) && cycle_countor >= 1)  // 因为FIFO有预读，导致第一次读到的数据不正确，这里避开第一个写读周期
+		if (rd_data != ( rd_counter) && cycle_countor >= 1)  // 因为FIFO有预读，导致第一次读到的数据不正确，这里避开第一个写读周期
 			error_flag <= 1'b1;             // 若读取的数据错误,将错误标志位拉高 
 		else
 			error_flag <= error_flag;
