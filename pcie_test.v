@@ -2,21 +2,23 @@
 
 module pcie_test
 (
-    input              i_sys_rst_n        ,
-    input              i_fpga_clk_50m     ,
-	 output [3:0]   		  o_fpga_led,
-	 output wire [11:0]	sd_a,
-	 output wire [1:0]	sd_ba,
-	 output wire 			sd_cas,
-	 output wire			sd_cs,
-	 inout wire [`SDRAM_DATA_WIDTH-1:0]	sd_dq,
+    input              						i_sys_rst_n        ,
+    input              						i_fpga_clk_50m     ,
+	 output [3:0]   		  				o_fpga_led,
+	 output wire [`SDRAM_ROW_WIDTH-1:0]		sd_a,
+	 output wire [`SDRAM_BANK_WIDTH:0]		sd_ba,
+	 output wire 							sd_cas,
+	 output wire							sd_cs,
+	 inout wire [`SDRAM_DATA_WIDTH-1:0]		sd_dq,
 	 output wire [`SDRAM_DATA_WIDTH/8 - 1:0]	sd_dqm,
-	 output wire			sd_ras,
-	 output wire			sd_we,
-	 output wire 			sd_clk
+	 output wire							sd_ras,
+	 output wire							sd_we,
+	 output wire 							sd_clk
 );
 
 
+`define		SDRAM_TEST_LEN		    24'h400000  // 4M * 64bit, 该值最大为24bit
+`define		SDRAM_FULL_PAGE_BURST_LEN 10'd256
 
 
 wire clk_100m_out;
@@ -34,8 +36,6 @@ wire        sys_rst_n;                      //系统复位信号
 wire        error_flag;                     //读写测试错误标志
 wire [3:0]		cycle_countor;				// 测试周期计数
 
-`define		SDRAM_TEST_LEN		    24'h400000 
-`define		SDRAM_FULL_PAGE_BURST_LEN 10'd256
 
 assign sys_rst_n = i_sys_rst_n & locked;
 

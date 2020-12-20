@@ -40,10 +40,12 @@ module sdram_cmd(
     output            sdram_cas_n,	    //SDRAM列地址选通脉冲
     output            sdram_we_n,		//SDRAM写允许位
     output reg [ 1:0] sdram_ba,		    //SDRAM的L-Bank地址线
-    output reg [11:0] sdram_addr	    //SDRAM地址总线
+    output reg [`SDRAM_ROW_WIDTH-1:0] sdram_addr	    //SDRAM地址总线
     );
 
 `include "sdram_para.v"		            //包含SDRAM参数定义模块
+
+
 
 //reg define
 reg  [ 4:0] sdram_cmd_r;	            //SDRAM操作指令
@@ -65,31 +67,31 @@ assign sys_addr = sdram_rd_wr ? sys_rdaddr : sys_wraddr;
 always @ (posedge clk or negedge rst_n) begin
 	if(!rst_n) begin
 			sdram_cmd_r <= `CMD_INIT;
-			sdram_ba    <= 2'b11;
-			sdram_addr  <= 12'hfff;
+			sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+			sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};;
 	end
 	else
 		case(init_state)
                                         //初始化过程中,以下状态不执行任何指令
             `I_NOP,`I_TRP,`I_TRF,`I_TRSC: begin
                     sdram_cmd_r <= `CMD_NOP;
-                    sdram_ba    <= 2'b11;
-                    sdram_addr  <= 12'hfff;	
+                    sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}}; //2'b11;
+                    sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}}; //12'hfff;	
                 end
             `I_PRE: begin               //预充电指令
                     sdram_cmd_r <= `CMD_PRGE;
-                    sdram_ba    <= 2'b11;
-                    sdram_addr  <= 12'hfff;
+                    sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                    sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};
                 end 
             `I_AR: begin
                                         //自动刷新指令
                     sdram_cmd_r <= `CMD_A_REF;
-                    sdram_ba    <= 2'b11;
-                    sdram_addr  <= 12'hfff;						
+                    sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                    sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};						
                 end 			 	
             `I_MRS: begin	            //模式寄存器设置指令
                     sdram_cmd_r <= `CMD_LMR;
-                    sdram_ba    <= 2'b00;
+                    sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b0}};
                     sdram_addr  <= {    //利用地址线设置模式寄存器,可根据实际需要进行修改
                         2'b00,		    //预留
                         1'b0,		    //读写方式 A9=0，突发读&突发写
@@ -103,62 +105,62 @@ always @ (posedge clk or negedge rst_n) begin
 					case(work_state)    //以下工作状态不执行任何指令
                         `W_IDLE,`W_TRCD,`W_CL,`W_TWR,`W_TRP,`W_TRFC: begin
                                 sdram_cmd_r <= `CMD_NOP;
-                                sdram_ba    <= 2'b11;
-                                sdram_addr  <= 12'hfff;
+                                sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                                sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};
                             end
                         `W_ACTIVE: begin//行有效指令
                                 sdram_cmd_r <= `CMD_ACTIVE;
-                                sdram_ba    <= sys_addr[21:20];
-                                sdram_addr  <= sys_addr[19:8];
+                                sdram_ba    <= sys_addr[`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH + `SDRAM_BANK_WIDTH -1:`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH];  // sys_addr[21:20];
+                                sdram_addr  <= sys_addr[`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH - 1:`SDRAM_COLUMN_WIDTH]; //sys_addr[19:8];
                             end
                         `W_READ: begin  //读操作指令
                                 sdram_cmd_r <= `CMD_READ;
-                                sdram_ba    <= sys_addr[21:20];
-                                sdram_addr  <= {4'b0000,sys_addr[7:0]};
+                                sdram_ba    <= sys_addr[`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH + `SDRAM_BANK_WIDTH -1:`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH];
+                                sdram_addr  <= { {(`SDRAM_ROW_WIDTH - `SDRAM_COLUMN_WIDTH){1'b0}},sys_addr[`SDRAM_COLUMN_WIDTH-1:0]};  //{4'b0000,sys_addr[7:0]};
                             end
                         `W_RD: begin    //突发传输终止指令
                                 if(`end_rdburst) 
                                     sdram_cmd_r <= `CMD_B_STOP;
                                 else begin
                                     sdram_cmd_r <= `CMD_NOP;
-                                    sdram_ba    <= 2'b11;
-                                    sdram_addr  <= 12'hfff;
+                                    sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                                    sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};
                                 end
                             end								
                         `W_WRITE: begin //写操作指令
                                 sdram_cmd_r <= `CMD_WRITE;
-                                sdram_ba    <= sys_addr[21:20];
-                                sdram_addr  <=  {4'b0000,sys_addr[7:0]};
+                                sdram_ba    <= sys_addr[`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH + `SDRAM_BANK_WIDTH -1:`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH];   //sys_addr[21:20];
+                                sdram_addr  <=  { {(`SDRAM_ROW_WIDTH - `SDRAM_COLUMN_WIDTH){1'b0}},sys_addr[`SDRAM_COLUMN_WIDTH-1:0]}; //{4'b0000,sys_addr[7:0]};
                             end		
                         `W_WD: begin    //突发传输终止指令
                                 if(`end_wrburst) 
                                     sdram_cmd_r <= `CMD_B_STOP;
                                 else begin
                                     sdram_cmd_r <= `CMD_NOP;
-                                    sdram_ba    <= 2'b11;
-                                    sdram_addr  <= 12'hfff;
+                                    sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                                    sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};
                                 end
                             end
                         `W_PRE:begin    //预充电指令
                                 sdram_cmd_r <= `CMD_PRGE;
-                                sdram_ba    <= sys_addr[21:20];
-                                sdram_addr  <= 12'h0000;
+                                sdram_ba    <= sys_addr[`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH + `SDRAM_BANK_WIDTH -1:`SDRAM_ROW_WIDTH + `SDRAM_COLUMN_WIDTH]; //sys_addr[21:20];
+                                sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b0}};
                             end				
                         `W_AR: begin    //自动刷新指令
                                 sdram_cmd_r <= `CMD_A_REF;
-                                sdram_ba    <= 2'b11;
-                                sdram_addr  <= 12'hfff;
+                                sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                                sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};
                             end
                         default: begin
                                 sdram_cmd_r <= `CMD_NOP;
-                                sdram_ba    <= 2'b11;
-                                sdram_addr  <= 12'hfff;
+                                sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                                sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};
                             end
 					endcase
             default: begin
                     sdram_cmd_r <= `CMD_NOP;
-                    sdram_ba    <= 2'b11;
-                    sdram_addr  <= 12'hfff;
+                    sdram_ba    <= {`SDRAM_BANK_WIDTH{1'b1}};
+                    sdram_addr  <= {`SDRAM_ROW_WIDTH{1'b1}};
                 end
 		endcase
 end

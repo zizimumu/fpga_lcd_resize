@@ -46,12 +46,34 @@ always @(posedge clk_50m or negedge rst_n) begin
 end
 
 
+
+//检测上升沿
+reg	       error_r1;                   //写端口复位寄存器      
+reg        error_r2;                   
+wire       error_trigger_flag; 
+
+assign error_trigger_flag    = ~error_r2 & error_r1;
+
+always @(posedge clk_50m or negedge rst_n) begin
+	if(!rst_n) begin
+		error_r2 <= 1'b0;
+		error_r1 <= 1'b0;
+    end
+	else begin
+		error_r1 <= error_flag;
+		error_r2 <= error_r1;
+    end
+end
+
+
+
 reg led_flash;
 always @(posedge clk_50m or negedge rst_n) begin
     if(!rst_n)
         led_flash <= 1'b0;
-    else if(error_flag) 
+    else if(error_trigger_flag) begin
         led_flash = 1'b1;
+	end
     else
         led_flash <= led_flash;
 end
@@ -59,13 +81,16 @@ end
 //利用LED灯不同的显示状态指示错误标志的高低
 always @(posedge clk_50m or negedge rst_n) begin
     if(rst_n == 1'b0)
-        led <= 1'b0;
+        led <= 4'b0000;
     else if(led_flash) begin
         if(led_cnt == 25'd12000000) 
             led <= ~led;    //错误标志为高时，LED灯每隔0.5s闪烁一次
         else
             led <= led;
     end    
+    else if(error_trigger_flag) begin
+		led <= 4'b0000;
+	end
     else
         led <= cycle_countor;        //错误标志为低时，LED灯常亮
 end
