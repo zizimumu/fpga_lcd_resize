@@ -1,3 +1,5 @@
+`include "sdram\sdram_timing.v"
+
 module pcie_test
 (
     input              i_sys_rst_n        ,
@@ -7,8 +9,8 @@ module pcie_test
 	 output wire [1:0]	sd_ba,
 	 output wire 			sd_cas,
 	 output wire			sd_cs,
-	 inout wire [63:0]	sd_dq,
-	 output wire [7:0]	sd_dqm,
+	 inout wire [`SDRAM_DATA_WIDTH-1:0]	sd_dq,
+	 output wire [`SDRAM_DATA_WIDTH/8 - 1:0]	sd_dqm,
 	 output wire			sd_ras,
 	 output wire			sd_we,
 	 output wire 			sd_clk
@@ -23,9 +25,9 @@ wire clk_100m_ctl;
 wire        locked;
 
 wire        wr_en;                          //SDRAM 写端口:写使能
-wire [63:0] wr_data;                        //SDRAM 写端口:写入的数据
+wire [`SDRAM_DATA_WIDTH-1:0] wr_data;                        //SDRAM 写端口:写入的数据
 wire        rd_en;                          //SDRAM 读端口:读使能
-wire [63:0] rd_data;                        //SDRAM 读端口:读出的数据
+wire [`SDRAM_DATA_WIDTH-1:0] rd_data;                        //SDRAM 读端口:读出的数据
 wire        sdram_init_done;                //SDRAM 初始化完成信号
 
 wire        sys_rst_n;                      //系统复位信号
@@ -33,7 +35,7 @@ wire        error_flag;                     //读写测试错误标志
 wire [3:0]		cycle_countor;				// 测试周期计数
 
 `define		SDRAM_TEST_LEN		    24'h400000 
-
+`define		SDRAM_FULL_PAGE_BURST_LEN 10'd256
 
 assign sys_rst_n = i_sys_rst_n & locked;
 
@@ -85,7 +87,7 @@ sdram_top u_sdram_top(
 	.wr_data		    (wr_data),		    //写端口FIFO: 写数据
 	.wr_min_addr		(24'd0),			//写SDRAM的起始地址
 	.wr_max_addr		(`SDRAM_TEST_LEN),		    //写SDRAM的结束地址
-	.wr_len			    (10'd256),			//写SDRAM时的数据突发长度
+	.wr_len			    (`SDRAM_FULL_PAGE_BURST_LEN),			//写SDRAM时的数据突发长度
 	.wr_load			(~sys_rst_n),		//写端口复位: 复位写地址,清空写FIFO
    
     //用户读端口
@@ -94,7 +96,7 @@ sdram_top u_sdram_top(
 	.rd_data	    	(rd_data),		    //读端口FIFO: 读数据
 	.rd_min_addr		(24'd0),			//读SDRAM的起始地址
 	.rd_max_addr		(`SDRAM_TEST_LEN),	    	//读SDRAM的结束地址
-	.rd_len 			(10'd256),			//从SDRAM中读数据时的突发长度
+	.rd_len 			(`SDRAM_FULL_PAGE_BURST_LEN),			//从SDRAM中读数据时的突发长度
 	.rd_load			(~sys_rst_n),		//读端口复位: 复位读地址,清空读FIFO
 	   
      //用户控制端口  

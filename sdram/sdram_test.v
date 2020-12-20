@@ -18,6 +18,7 @@
 //
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
+`include "sdram_timing.v"
 
 module sdram_test#(
 	parameter TEST_LEN = 32'd1024,  // 测试数据长度
@@ -28,9 +29,9 @@ module sdram_test#(
     input             rst_n,            //复位,低有效
     
     output reg        wr_en,            //SDRAM 写使能
-    output reg [63:0] wr_data,          //SDRAM 写入的数据
+    output reg [`SDRAM_DATA_WIDTH-1:0] wr_data,          //SDRAM 写入的数据
     output reg        rd_en,            //SDRAM 读使能
-    input      [63:0] rd_data,          //SDRAM 读出的数据
+    input      [`SDRAM_DATA_WIDTH-1:0] rd_data,          //SDRAM 读出的数据
     
     input             sdram_init_done,  //SDRAM 初始化完成标志
     output reg        error_flag,        //SDRAM 读写测试错误标志
@@ -86,7 +87,7 @@ end
 always @(posedge clk_50m or negedge rst_n) begin
     if(!rst_n) begin      
         wr_en   <= 1'b0;
-        wr_data <= 16'd0;
+        wr_data <= 0; //64'd0;
 		cycle_countor <= 4'd0;
     end
     else if(counter >= 11'd1 && (counter <= TEST_LEN)) begin

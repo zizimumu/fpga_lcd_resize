@@ -18,6 +18,7 @@
 //
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
+`include "sdram_timing.v"
 
 module sdram_controller(
     input         clk,		        //SDRAM控制器时钟，100MHz
@@ -28,14 +29,14 @@ module sdram_controller(
     output        sdram_wr_ack,		//写SDRAM响应信号
     input  [23:0] sdram_wr_addr,	//SDRAM写操作的地址
     input  [ 9:0] sdram_wr_burst,   //写sdram时数据突发长度
-    input  [63:0] sdram_din,	    //写入SDRAM的数据
+    input  [`SDRAM_DATA_WIDTH-1:0] sdram_din,	    //写入SDRAM的数据
     
 	//SDRAM 控制器读端口	
     input         sdram_rd_req,		//读SDRAM请求信号
     output        sdram_rd_ack,		//读SDRAM响应信号
     input  [23:0] sdram_rd_addr,	//SDRAM写操作的地址
     input  [ 9:0] sdram_rd_burst,   //读sdram时数据突发长度
-    output [63:0] sdram_dout,	    //从SDRAM读出的数据
+    output [`SDRAM_DATA_WIDTH-1:0] sdram_dout,	    //从SDRAM读出的数据
     
     output	      sdram_init_done,  //SDRAM 初始化完成标志
                                      
@@ -47,7 +48,7 @@ module sdram_controller(
     output        sdram_we_n,		// SDRAM 写允许位
     output [ 1:0] sdram_ba,		    // SDRAM L-Bank地址线
     output [11:0] sdram_addr,	    // SDRAM 地址总线
-    inout  [63:0] sdram_data		// SDRAM 数据总线
+    inout  [`SDRAM_DATA_WIDTH-1:0] sdram_data		// SDRAM 数据总线
     );
 
 //wire define

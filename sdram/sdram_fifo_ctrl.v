@@ -18,7 +18,7 @@
 //
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
-
+`include "sdram_timing.v"
 module sdram_fifo_ctrl(
 	input             clk_ref,		     //SDRAM控制器时钟
 	input             rst_n,			 //系统复位 
@@ -26,7 +26,7 @@ module sdram_fifo_ctrl(
     //用户写端口                         
 	input             clk_write,		 //写端口FIFO: 写时钟 
 	input             wrf_wrreq,		 //写端口FIFO: 写请求 
-	input      [63:0] wrf_din,		     //写端口FIFO: 写数据	
+	input      [`SDRAM_DATA_WIDTH-1:0] wrf_din,		     //写端口FIFO: 写数据	
 	input      [23:0] wr_min_addr,	     //写SDRAM的起始地址
 	input      [23:0] wr_max_addr,	     //写SDRAM的结束地址
  	input      [ 9:0] wr_length,		 //写SDRAM时的数据突发长度 
@@ -35,7 +35,7 @@ module sdram_fifo_ctrl(
     //用户读端口                         
 	input             clk_read,		     //读端口FIFO: 读时钟
 	input             rdf_rdreq,		 //读端口FIFO: 读请求 
-	output     [63:0] rdf_dout,		     //读端口FIFO: 读数据
+	output     [`SDRAM_DATA_WIDTH-1:0] rdf_dout,		     //读端口FIFO: 读数据
 	input      [23:0] rd_min_addr,	     //读SDRAM的起始地址
 	input      [23:0] rd_max_addr,	     //读SDRAM的结束地址
 	input      [ 9:0] rd_length,		 //从SDRAM中读数据时的突发长度 
@@ -49,13 +49,13 @@ module sdram_fifo_ctrl(
 	output reg		  sdram_wr_req,	     //sdram 写请求
 	input             sdram_wr_ack,	     //sdram 写响应
 	output reg [23:0] sdram_wr_addr,	 //sdram 写地址
-	output	   [63:0] sdram_din,		 //写入SDRAM中的数据 
+	output	   [`SDRAM_DATA_WIDTH-1:0] sdram_din,		 //写入SDRAM中的数据 
                                          
     //SDRAM 控制器读端口                 
 	output reg        sdram_rd_req,	     //sdram 读请求
 	input             sdram_rd_ack,	     //sdram 读响应
 	output reg [23:0] sdram_rd_addr,	     //sdram 读地址 
-	input      [63:0] sdram_dout 		 //从SDRAM中读出的数据 
+	input      [`SDRAM_DATA_WIDTH-1:0] sdram_dout 		 //从SDRAM中读出的数据 
     );
 
 //reg define
