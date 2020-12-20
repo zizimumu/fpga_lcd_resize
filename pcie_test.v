@@ -6,7 +6,7 @@ module pcie_test
     input              						i_fpga_clk_50m     ,
 	 output [3:0]   		  				o_fpga_led,
 	 output wire [`SDRAM_ROW_WIDTH-1:0]		sd_a,
-	 output wire [`SDRAM_BANK_WIDTH:0]		sd_ba,
+	 output wire [`SDRAM_BANK_WIDTH - 1:0]		sd_ba,
 	 output wire 							sd_cas,
 	 output wire							sd_cs,
 	 inout wire [`SDRAM_DATA_WIDTH-1:0]		sd_dq,

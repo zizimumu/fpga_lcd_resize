@@ -113,7 +113,7 @@ always @ (posedge clk or negedge rst_n)
 always @ (posedge clk or negedge rst_n)
 	if(!rst_n) 
         sdram_ref_req <= 1'b0;
-	else if(cnt_refresh == (`FRESH_CYCLE - 2) )    //else if(cnt_refresh == 12'd780) 
+	else if(cnt_refresh == (FRESH_CYCLE - 2) )    //else if(cnt_refresh == 12'd780) 
         sdram_ref_req <= 1'b1;	        //刷新计数器计时达7812ns时产生刷新请求
 	else if(sdram_ref_ack) 
         sdram_ref_req <= 1'b0;		    //收到刷新请求响应信号后取消刷新请求 
