@@ -1,3 +1,5 @@
+// v1.0
+
 `include "sdram\sdram_timing.v"
 
 module pcie_test
