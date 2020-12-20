@@ -18,6 +18,7 @@
 //
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
+`include "sdram_timing.v"
 
 module sdram_ctrl(
     input            clk,			    //系统时钟
@@ -49,6 +50,7 @@ parameter  TCL_CLK	  = 10'd3;	        //列潜伏期
 parameter  TWR_CLK	  = 10'd2;	        //写入校正
 */
 
+
 parameter  TRP_CLK	  = `SDRAM_TRP_CLK;	        //预充电有效周期
 parameter  TRC_CLK	  = `SDRAM_TRC_CLK;	        //自动刷新周期
 parameter  TRSC_CLK	  = `SDRAM_TRSC_CLK;	        //模式寄存器设置时钟周期
@@ -56,6 +58,17 @@ parameter  TRCD_CLK	  = `SDRAM_TRCD_CLK;	        //行选通周期
 parameter  TCL_CLK	  = `SDRAM_TCL_CLK;	        //列潜伏期
 parameter  TWR_CLK	  = `SDRAM_TWR_CLK;	        //写入校正
 parameter  FRESH_CYCLE	  = `SDRAM_FRESH_CYCLE;	        //64ms/4096
+
+/* 
+parameter  TRP_CLK	  = 10'd2;	        //预充电有效周期
+parameter  TRC_CLK	  = 10'd9;	        //自动刷新周期
+parameter  TRSC_CLK	  = 10'd6;	        //模式寄存器设置时钟周期
+parameter  TRCD_CLK	  = 10'd2;	        //行选通周期
+parameter  TCL_CLK	  = 10'd3;	        //列潜伏期
+parameter  TWR_CLK	  = 10'd2;	        //写入校正
+parameter  FRESH_CYCLE	  = 12'd1562;	        //64ms/4096
+*/
+
                                         
 //reg define                            
 reg [14:0] cnt_200us;                   //SDRAM 上电稳定期200us计数器
