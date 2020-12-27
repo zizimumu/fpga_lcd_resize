@@ -4,18 +4,29 @@
 
 module pcie_test
 (
-    input              						i_sys_rst_n        ,
-    input              						i_fpga_clk_50m     ,
-	 output [3:0]   		  				o_fpga_led,
-	 output wire [`SDRAM_ROW_WIDTH-1:0]		sd_a,
-	 output wire [`SDRAM_BANK_WIDTH - 1:0]		sd_ba,
-	 output wire 							sd_cas,
-	 output wire							sd_cs,
-	 inout wire [`SDRAM_DATA_WIDTH-1:0]		sd_dq,
-	 output wire [`SDRAM_DATA_WIDTH/8 - 1:0]	sd_dqm,
-	 output wire							sd_ras,
-	 output wire							sd_we,
-	 output wire 							sd_clk
+	input              							i_sys_rst_n        ,
+	input              							i_fpga_clk_50m     ,
+	output 			[3:0]   		  			o_fpga_led,
+
+	// SDRAM
+	output wire 	[`SDRAM_ROW_WIDTH-1:0]		sd_a,
+	output wire 	[`SDRAM_BANK_WIDTH - 1:0]	sd_ba,
+	output wire 								sd_cas,
+	output wire									sd_cs,
+	inout wire 		[`SDRAM_DATA_WIDTH-1:0]		sd_dq,
+	output wire 	[`SDRAM_DATA_WIDTH/8 - 1:0]	sd_dqm,
+	output wire									sd_ras,
+	output wire									sd_we,
+	output wire 								sd_clk,
+	
+	// LCD
+    output               						o_lcd_de,      //LCD 数据使能信号
+    output               						o_lcd_hs,      //LCD 行同步信号
+    output               						o_lcd_vs,      //LCD 场同步信号
+    output               						o_lcd_clk,     //LCD 像素时钟
+    output        	[23:0]  					o_lcd_rgb,     //LCD RGB565颜色数据
+    output               						o_lcd_rst,
+    output               						o_lcd_bl
 );
 
 
@@ -29,11 +40,10 @@ wire clk_100m_ctl;
 wire        locked;
 
 wire        wr_en;                          //SDRAM 写端口:写使能
+wire        rd_en; 							//SDRAM 读端口:读使能
 wire [`SDRAM_DATA_WIDTH-1:0] wr_data;                        //SDRAM 写端口:写入的数据
-wire        rd_en;                          //SDRAM 读端口:读使能
 wire [`SDRAM_DATA_WIDTH-1:0] rd_data;                        //SDRAM 读端口:读出的数据
 wire        sdram_init_done;                //SDRAM 初始化完成信号
-
 wire        sys_rst_n;                      //系统复位信号
 wire        error_flag;                     //读写测试错误标志
 wire [3:0]		cycle_countor;				// 测试周期计数
@@ -50,6 +60,11 @@ clk_pll	clk_pll_inst (
 	);
 
 
+	
+	
+	
+/* 	
+	
 //SDRAM测试模块，对SDRAM进行读写测试
 sdram_test #(.TEST_LEN(`SDRAM_TEST_LEN))
 u_sdram_test(
@@ -119,5 +134,23 @@ sdram_top u_sdram_top(
     );
 
 	 
+*/ 
+	 
+	 
 
+lcd_rgb_colorbar u_lcd_rgb_colorbar(
+	.sys_clk			(i_fpga_clk_50m),     //系统时钟
+	.sys_rst_n			(sys_rst_n),   //系统复位
+    
+	//RGB LCD接口
+	.lcd_de				(o_lcd_de),      //LCD 数据使能信号
+	.lcd_hs				(o_lcd_hs),      //LCD 行同步信号
+	.lcd_vs				(o_lcd_vs),      //LCD 场同步信号
+	.lcd_clk			(o_lcd_clk),     //LCD 像素时钟
+	.lcd_rgb			(o_lcd_rgb),     //LCD RGB565颜色数据
+	.lcd_rst			(o_lcd_rst),
+	.lcd_bl				(o_lcd_bl)
+    
+    ); 
+	
 endmodule

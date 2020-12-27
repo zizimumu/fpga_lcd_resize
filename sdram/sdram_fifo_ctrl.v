@@ -192,7 +192,7 @@ always@(posedge clk_ref or negedge rst_n) begin
 			sdram_wr_req <= 1;		     //发出写sdarm请求
 			sdram_rd_req <= 0;		     
 		end
-		else if((rdf_use < rd_length)    //若读端口FIFO中的数据量小于读突发长度，
+		else if((rdf_use*4 < rd_length)    //若读端口FIFO中的数据量小于读突发长度，FIFO read宽度为16bit
                  && read_valid_r2) begin //同时sdram读使能信号为高
 			sdram_wr_req <= 0;		     
 			sdram_rd_req <= 1;		     //发出读sdarm请求

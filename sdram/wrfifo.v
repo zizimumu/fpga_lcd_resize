@@ -1,12 +1,12 @@
 // megafunction wizard: %FIFO%
 // GENERATION: STANDARD
 // VERSION: WM1.0
-// MODULE: dcfifo 
+// MODULE: dcfifo_mixed_widths 
 
 // ============================================================
 // File Name: wrfifo.v
 // Megafunction Name(s):
-// 			dcfifo
+// 			dcfifo_mixed_widths
 //
 // Simulation Library Files(s):
 // 			altera_mf
@@ -48,13 +48,13 @@ module wrfifo (
 	rdusedw);
 
 	input	  aclr;
-	input	[63:0]  data;
+	input	[15:0]  data;
 	input	  rdclk;
 	input	  rdreq;
 	input	  wrclk;
 	input	  wrreq;
 	output	[63:0]  q;
-	output	[9:0]  rdusedw;
+	output	[8:0]  rdusedw;
 `ifndef ALTERA_RESERVED_QIS
 // synopsys translate_off
 `endif
@@ -64,11 +64,11 @@ module wrfifo (
 `endif
 
 	wire [63:0] sub_wire0;
-	wire [9:0] sub_wire1;
+	wire [8:0] sub_wire1;
 	wire [63:0] q = sub_wire0[63:0];
-	wire [9:0] rdusedw = sub_wire1[9:0];
+	wire [8:0] rdusedw = sub_wire1[8:0];
 
-	dcfifo	dcfifo_component (
+	dcfifo_mixed_widths	dcfifo_mixed_widths_component (
 				.aclr (aclr),
 				.data (data),
 				.rdclk (rdclk),
@@ -83,19 +83,21 @@ module wrfifo (
 				.wrfull (),
 				.wrusedw ());
 	defparam
-		dcfifo_component.intended_device_family = "Cyclone II",
-		dcfifo_component.lpm_hint = "MAXIMIZE_SPEED=5,",
-		dcfifo_component.lpm_numwords = 1024,
-		dcfifo_component.lpm_showahead = "OFF",
-		dcfifo_component.lpm_type = "dcfifo",
-		dcfifo_component.lpm_width = 64,
-		dcfifo_component.lpm_widthu = 10,
-		dcfifo_component.overflow_checking = "ON",
-		dcfifo_component.rdsync_delaypipe = 3,
-		dcfifo_component.underflow_checking = "ON",
-		dcfifo_component.use_eab = "ON",
-		dcfifo_component.write_aclr_synch = "OFF",
-		dcfifo_component.wrsync_delaypipe = 3;
+		dcfifo_mixed_widths_component.intended_device_family = "Cyclone II",
+		dcfifo_mixed_widths_component.lpm_hint = "MAXIMIZE_SPEED=5,",
+		dcfifo_mixed_widths_component.lpm_numwords = 2048,
+		dcfifo_mixed_widths_component.lpm_showahead = "OFF",
+		dcfifo_mixed_widths_component.lpm_type = "dcfifo_mixed_widths",
+		dcfifo_mixed_widths_component.lpm_width = 16,
+		dcfifo_mixed_widths_component.lpm_widthu = 11,
+		dcfifo_mixed_widths_component.lpm_widthu_r = 9,
+		dcfifo_mixed_widths_component.lpm_width_r = 64,
+		dcfifo_mixed_widths_component.overflow_checking = "ON",
+		dcfifo_mixed_widths_component.rdsync_delaypipe = 3,
+		dcfifo_mixed_widths_component.underflow_checking = "ON",
+		dcfifo_mixed_widths_component.use_eab = "ON",
+		dcfifo_mixed_widths_component.write_aclr_synch = "OFF",
+		dcfifo_mixed_widths_component.wrsync_delaypipe = 3;
 
 
 endmodule
@@ -109,7 +111,7 @@ endmodule
 // Retrieval info: PRIVATE: AlmostFullThr NUMERIC "-1"
 // Retrieval info: PRIVATE: CLOCKS_ARE_SYNCHRONIZED NUMERIC "1"
 // Retrieval info: PRIVATE: Clock NUMERIC "4"
-// Retrieval info: PRIVATE: Depth NUMERIC "1024"
+// Retrieval info: PRIVATE: Depth NUMERIC "2048"
 // Retrieval info: PRIVATE: Empty NUMERIC "1"
 // Retrieval info: PRIVATE: Full NUMERIC "1"
 // Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone II"
@@ -122,9 +124,9 @@ endmodule
 // Retrieval info: PRIVATE: SYNTH_WRAPPER_GEN_POSTFIX STRING "0"
 // Retrieval info: PRIVATE: UNDERFLOW_CHECKING NUMERIC "0"
 // Retrieval info: PRIVATE: UsedW NUMERIC "1"
-// Retrieval info: PRIVATE: Width NUMERIC "64"
+// Retrieval info: PRIVATE: Width NUMERIC "16"
 // Retrieval info: PRIVATE: dc_aclr NUMERIC "1"
-// Retrieval info: PRIVATE: diff_widths NUMERIC "0"
+// Retrieval info: PRIVATE: diff_widths NUMERIC "1"
 // Retrieval info: PRIVATE: msb_usedw NUMERIC "0"
 // Retrieval info: PRIVATE: output_width NUMERIC "64"
 // Retrieval info: PRIVATE: rsEmpty NUMERIC "0"
@@ -138,11 +140,13 @@ endmodule
 // Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone II"
 // Retrieval info: CONSTANT: LPM_HINT STRING "MAXIMIZE_SPEED=5,"
-// Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "1024"
+// Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "2048"
 // Retrieval info: CONSTANT: LPM_SHOWAHEAD STRING "OFF"
-// Retrieval info: CONSTANT: LPM_TYPE STRING "dcfifo"
-// Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "64"
-// Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "10"
+// Retrieval info: CONSTANT: LPM_TYPE STRING "dcfifo_mixed_widths"
+// Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "16"
+// Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "11"
+// Retrieval info: CONSTANT: LPM_WIDTHU_R NUMERIC "9"
+// Retrieval info: CONSTANT: LPM_WIDTH_R NUMERIC "64"
 // Retrieval info: CONSTANT: OVERFLOW_CHECKING STRING "ON"
 // Retrieval info: CONSTANT: RDSYNC_DELAYPIPE NUMERIC "3"
 // Retrieval info: CONSTANT: UNDERFLOW_CHECKING STRING "ON"
@@ -150,21 +154,21 @@ endmodule
 // Retrieval info: CONSTANT: WRITE_ACLR_SYNCH STRING "OFF"
 // Retrieval info: CONSTANT: WRSYNC_DELAYPIPE NUMERIC "3"
 // Retrieval info: USED_PORT: aclr 0 0 0 0 INPUT GND "aclr"
-// Retrieval info: USED_PORT: data 0 0 64 0 INPUT NODEFVAL "data[63..0]"
+// Retrieval info: USED_PORT: data 0 0 16 0 INPUT NODEFVAL "data[15..0]"
 // Retrieval info: USED_PORT: q 0 0 64 0 OUTPUT NODEFVAL "q[63..0]"
 // Retrieval info: USED_PORT: rdclk 0 0 0 0 INPUT NODEFVAL "rdclk"
 // Retrieval info: USED_PORT: rdreq 0 0 0 0 INPUT NODEFVAL "rdreq"
-// Retrieval info: USED_PORT: rdusedw 0 0 10 0 OUTPUT NODEFVAL "rdusedw[9..0]"
+// Retrieval info: USED_PORT: rdusedw 0 0 9 0 OUTPUT NODEFVAL "rdusedw[8..0]"
 // Retrieval info: USED_PORT: wrclk 0 0 0 0 INPUT NODEFVAL "wrclk"
 // Retrieval info: USED_PORT: wrreq 0 0 0 0 INPUT NODEFVAL "wrreq"
 // Retrieval info: CONNECT: @aclr 0 0 0 0 aclr 0 0 0 0
-// Retrieval info: CONNECT: @data 0 0 64 0 data 0 0 64 0
+// Retrieval info: CONNECT: @data 0 0 16 0 data 0 0 16 0
 // Retrieval info: CONNECT: @rdclk 0 0 0 0 rdclk 0 0 0 0
 // Retrieval info: CONNECT: @rdreq 0 0 0 0 rdreq 0 0 0 0
 // Retrieval info: CONNECT: @wrclk 0 0 0 0 wrclk 0 0 0 0
 // Retrieval info: CONNECT: @wrreq 0 0 0 0 wrreq 0 0 0 0
 // Retrieval info: CONNECT: q 0 0 64 0 @q 0 0 64 0
-// Retrieval info: CONNECT: rdusedw 0 0 10 0 @rdusedw 0 0 10 0
+// Retrieval info: CONNECT: rdusedw 0 0 9 0 @rdusedw 0 0 9 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL wrfifo.v TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL wrfifo.inc FALSE
 // Retrieval info: GEN_FILE: TYPE_NORMAL wrfifo.cmp FALSE
