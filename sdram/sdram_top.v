@@ -28,7 +28,7 @@ module	sdram_top(
     //用户写端口			
 	input         wr_clk,                   //写端口FIFO: 写时钟
 	input         wr_en,                    //写端口FIFO: 写使能
-	input  [`SDRAM_DATA_WIDTH-1:0] wr_data,                  //写端口FIFO: 写数据
+	input  [`FIFO_WIDTH-1:0] wr_data,                  //写端口FIFO: 写数据
 	input  [23:0] wr_min_addr,              //写SDRAM的起始地址
 	input  [23:0] wr_max_addr,              //写SDRAM的结束地址
 	input  [ 9:0] wr_len,                   //写SDRAM时的数据突发长度
@@ -37,7 +37,7 @@ module	sdram_top(
     //用户读端口
 	input         rd_clk,                   //读端口FIFO: 读时钟
 	input         rd_en,                    //读端口FIFO: 读使能
-	output [`SDRAM_DATA_WIDTH-1:0] rd_data,                  //读端口FIFO: 读数据
+	output [`FIFO_WIDTH-1:0] rd_data,                  //读端口FIFO: 读数据
 	input  [23:0] rd_min_addr,              //读SDRAM的起始地址
 	input  [23:0] rd_max_addr,              //读SDRAM的结束地址
 	input  [ 9:0] rd_len,                   //从SDRAM中读数据时的突发长度

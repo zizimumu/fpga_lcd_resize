@@ -20,6 +20,8 @@
 //
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
+`include "lcd_timing.v"
+
 module lcd_driver(
     input                lcd_pclk,    //时钟
     input                rst_n,       //复位，低电平有效
@@ -28,7 +30,8 @@ module lcd_driver(
     output       [10:0]  pixel_xpos,  //当前像素点横坐标
     output       [10:0]  pixel_ypos,  //当前像素点纵坐标   
     output    [10:0]  o_h_disp,      //LCD屏水平分辨率
-    output    [10:0]  o_v_disp,      //LCD屏垂直分辨率   
+    output    [10:0]  o_v_disp,      //LCD屏垂直分辨率  
+	output 				data_req,
     //RGB LCD接口
     output               lcd_de,      //LCD 数据使能信号
     output               lcd_hs,      //LCD 行同步信号
@@ -40,6 +43,7 @@ module lcd_driver(
   
     );
 
+/* 
 //parameter define  
 // 4.3' 480*272
 parameter  H_SYNC_4342   =  11'd41;     //行同步
@@ -110,6 +114,9 @@ parameter  V_DISP_4384   =  11'd480;    //场有效数据
 parameter  V_FRONT_4384  =  11'd10;     //场显示前沿
 parameter  V_TOTAL_4384  =  11'd525;    //场扫描周期    
 
+
+*/
+
 //reg define
 // reg  [10:0] h_sync ;
 // reg  [10:0] h_back ;
@@ -122,7 +129,7 @@ reg  [10:0] v_cnt  ;
 
 //wire define    
 wire        lcd_en;
-wire        data_req;
+
 
 //*****************************************************
 //**                    main code
@@ -134,21 +141,18 @@ wire        data_req;
 
 
 
-parameter  h_sync   =  11'd128;     //行同步
-parameter  h_back   =  11'd64;    //行显示后沿
-parameter  h_disp   =  11'd800;   //行有效数据
-parameter  H_FRONT  =  11'd64;     //行显示前沿
-parameter  h_total  =  11'd1056;  //行扫描周期
+parameter  h_sync   =  `LCD_H_SYNC;     //行同步
+parameter  h_back   =  `LCD_H_BACK;    //行显示后沿
+parameter  h_disp   =  `LCD_H_DISP;   //行有效数据
+parameter  H_FRONT  =  `LCD_H_FRONT;     //行显示前沿
+parameter  h_total  =  `LCD_H_TOTAL;  //行扫描周期
 
-parameter  v_sync   =  11'd2;     //场同步
-parameter  v_back   =  11'd21;    //场显示后沿
-parameter  v_disp   =  11'd480;   //场有效数据
-parameter  V_FRONT  =  11'd22;    //场显示前沿
-parameter  v_total  =  11'd525;   //场扫描周期
+parameter  v_sync   =  `LCD_V_SYNC;     //场同步
+parameter  v_back   =  `LCD_V_BACK;    //场显示后沿
+parameter  v_disp   =  `LCD_V_DISP;   //场有效数据
+parameter  V_FRONT  =  `LCD_V_FRONT;    //场显示前沿
+parameter  v_total  =  `LCD_V_TOTAL;   //场扫描周期
 
-
-assign o_h_disp = 11'd800;
-assign o_v_disp = 11'd480;
 
 assign lcd_hs  = (h_cnt <= h_sync - 1'b1) ? 1'b1 : 1'b0;
 assign lcd_vs  = (v_cnt <= v_sync - 1'b1) ? 1'b1 : 1'b0;

@@ -20,14 +20,15 @@
 //
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
+`include "lcd_timing.v"
 
 module lcd_display(
     input                lcd_pclk,    //时钟
     input                rst_n,       //复位，低电平有效
     input        [10:0]  pixel_xpos,  //当前像素点横坐标
     input        [10:0]  pixel_ypos,  //当前像素点纵坐标  
-    input        [10:0]  h_disp,      //LCD屏水平分辨率
-    input        [10:0]  v_disp,      //LCD屏垂直分辨率       
+    // input        [10:0]  h_disp,      //LCD屏水平分辨率
+    // input        [10:0]  v_disp,      //LCD屏垂直分辨率       
     output  reg  [15:0]  pixel_data   //像素数据
     );
 
@@ -43,13 +44,13 @@ always @(posedge lcd_pclk or negedge rst_n) begin
     if(!rst_n)
         pixel_data <= BLACK;
     else begin
-        if((pixel_xpos >= 11'd0) && (pixel_xpos < h_disp/5*1))
+        if((pixel_xpos >= 11'd0) && (pixel_xpos < 	`LCD_H_DISP/5*1))
             pixel_data <= WHITE;
-        else if((pixel_xpos >= h_disp/5*1) && (pixel_xpos < h_disp/5*2))    
+        else if((pixel_xpos >= `LCD_H_DISP/5*1) && (pixel_xpos < `LCD_H_DISP/5*2))    
             pixel_data <= BLACK;
-        else if((pixel_xpos >= h_disp/5*2) && (pixel_xpos < h_disp/5*3))    
+        else if((pixel_xpos >= `LCD_H_DISP/5*2) && (pixel_xpos < `LCD_H_DISP/5*3))    
             pixel_data <= RED;   
-        else if((pixel_xpos >= h_disp/5*3) && (pixel_xpos < h_disp/5*4))    
+        else if((pixel_xpos >= `LCD_H_DISP/5*3) && (pixel_xpos < `LCD_H_DISP/5*4))    
             pixel_data <= GREEN;                
         else 
             pixel_data <= BLUE;      

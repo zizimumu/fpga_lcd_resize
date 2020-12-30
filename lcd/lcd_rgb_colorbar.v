@@ -20,6 +20,8 @@
 //
 //----------------------------------------------------------------------------------------
 //****************************************************************************************//
+`include "lcd_timing.v"
+
 module lcd_rgb_colorbar(
     input                sys_clk,     //系统时钟
     input                sys_rst_n,   //系统复位
@@ -67,8 +69,6 @@ lcd_display u_lcd_display(
     .rst_n          (sys_rst_n ),
     .pixel_xpos     (pixel_xpos),
     .pixel_ypos     (pixel_ypos),
-    .h_disp         (h_disp    ),
-    .v_disp         (v_disp    ),
     .pixel_data     (pixel_data)
     );    
 
@@ -80,8 +80,7 @@ lcd_driver u_lcd_driver(
     .pixel_data    (pixel_data),
     .pixel_xpos    (pixel_xpos),
     .pixel_ypos    (pixel_ypos),
-    .o_h_disp        (h_disp    ),
-    .o_v_disp        (v_disp    ),
+	.data_req		(),
 
     .lcd_de        (lcd_de    ),
     .lcd_hs        (lcd_hs    ),

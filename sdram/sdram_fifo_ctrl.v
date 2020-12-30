@@ -26,7 +26,7 @@ module sdram_fifo_ctrl(
     //用户写端口                         
 	input             clk_write,		 //写端口FIFO: 写时钟 
 	input             wrf_wrreq,		 //写端口FIFO: 写请求 
-	input      [`SDRAM_DATA_WIDTH-1:0] wrf_din,		     //写端口FIFO: 写数据	
+	input      [`FIFO_WIDTH-1:0] wrf_din,		     //写端口FIFO: 写数据	
 	input      [23:0] wr_min_addr,	     //写SDRAM的起始地址
 	input      [23:0] wr_max_addr,	     //写SDRAM的结束地址
  	input      [ 9:0] wr_length,		 //写SDRAM时的数据突发长度 
@@ -35,7 +35,7 @@ module sdram_fifo_ctrl(
     //用户读端口                         
 	input             clk_read,		     //读端口FIFO: 读时钟
 	input             rdf_rdreq,		 //读端口FIFO: 读请求 
-	output     [`SDRAM_DATA_WIDTH-1:0] rdf_dout,		     //读端口FIFO: 读数据
+	output     [`FIFO_WIDTH-1:0] rdf_dout, //读端口FIFO: 读数据
 	input      [23:0] rd_min_addr,	     //读SDRAM的起始地址
 	input      [23:0] rd_max_addr,	     //读SDRAM的结束地址
 	input      [ 9:0] rd_length,		 //从SDRAM中读数据时的突发长度 
@@ -192,7 +192,7 @@ always@(posedge clk_ref or negedge rst_n) begin
 			sdram_wr_req <= 1;		     //发出写sdarm请求
 			sdram_rd_req <= 0;		     
 		end
-		else if((rdf_use*4 < rd_length)    //若读端口FIFO中的数据量小于读突发长度，FIFO read宽度为16bit
+		else if((rdf_use < rd_length)    //若读端口FIFO中的数据量小于读突发长度，FIFO read宽度为16bit
                  && read_valid_r2) begin //同时sdram读使能信号为高
 			sdram_wr_req <= 0;		     
 			sdram_rd_req <= 1;		     //发出读sdarm请求
