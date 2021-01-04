@@ -25,6 +25,7 @@ module	sdram_top(
 	input         out_clk,                  //用于输出的相位偏移时钟
 	input         rst_n,                    //系统复位
     
+	input			pingpong,
     //用户写端口			
 	input         wr_clk,                   //写端口FIFO: 写时钟
 	input         wr_en,                    //写端口FIFO: 写使能
@@ -82,6 +83,7 @@ sdram_fifo_ctrl u_sdram_fifo_ctrl(
 	.clk_ref			(ref_clk),			//SDRAM控制器时钟
 	.rst_n				(rst_n),			//系统复位
 
+	.pingpong			(pingpong),
     //用户写端口
 	.clk_write 			(wr_clk),    	    //写端口FIFO: 写时钟
 	.wrf_wrreq			(wr_en),			//写端口FIFO: 写请求

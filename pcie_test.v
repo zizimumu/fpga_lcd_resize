@@ -154,19 +154,21 @@ lcd_rgb_colorbar u_lcd_rgb_colorbar(
     ); 
 */	
 
-`define FRAME_LEN (800*480*2/8)
+`define IN_FRAME_LEN (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/8)
+`define OUT_FRAME_LEN (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/8)
 
 sdram_top u_sdram_top(
 	.ref_clk			(clk_100m_ctl),			//sdram	控制器参考时钟
 	.out_clk			(clk_100m_out),	//用于输出的相位偏移时钟
 	.rst_n				(sys_rst_n),		//系统复位
     
+	.pingpong			(1'b1),
     //用户写端口
 	.wr_clk 			(i_fpga_clk_50m),		    //写端口FIFO: 写时钟
 	.wr_en				(wr_en),			//写端口FIFO: 写使能
 	.wr_data		    (wr_data),		    //写端口FIFO: 写数据
 	.wr_min_addr		(24'd0),			//写SDRAM的起始地址
-	.wr_max_addr		(`FRAME_LEN),		    //写SDRAM的结束地址,地址以sdram位宽为单位
+	.wr_max_addr		(`IN_FRAME_LEN),		    //写SDRAM的结束地址,地址以sdram位宽为单位
 	.wr_len			    (`SDRAM_FULL_PAGE_BURST_LEN),			//写SDRAM时的数据突发长度
 	.wr_load			(~sys_rst_n),		//写端口复位: 复位写地址,清空写FIFO
    
@@ -175,7 +177,7 @@ sdram_top u_sdram_top(
     .rd_en				(rd_en),			//读端口FIFO: 读使能
 	.rd_data	    	(rd_data),		    //读端口FIFO: 读数据
 	.rd_min_addr		(24'd0),			//读SDRAM的起始地址
-	.rd_max_addr		(`FRAME_LEN),	    	//读SDRAM的结束地址，地址以sdram位宽为单位
+	.rd_max_addr		(`IN_FRAME_LEN),	    	//读SDRAM的结束地址，地址以sdram位宽为单位
 	.rd_len 			(`SDRAM_FULL_PAGE_BURST_LEN),			//从SDRAM中读数据时的突发长度
 	.rd_load			(~sys_rst_n),		//读端口复位: 复位读地址,清空读FIFO
 	   

@@ -32,7 +32,7 @@ parameter RED   = 16'b11111_000000_00000;  //红色
 parameter GREEN = 16'b00000_111111_00000;  //绿色
 parameter BLUE  = 16'b00000_000000_11111;  //蓝色
 
-`define LCD_FRAME_LEN (`LCD_H_DISP*`LCD_V_DISP)
+`define LCD_FRAME_LEN (`LCD_IN_H_DISP*`LCD_IN_V_DISP)
 
 
 

@@ -129,7 +129,7 @@ reg  [10:0] v_cnt  ;
 
 //wire define    
 wire        lcd_en;
-
+wire             data_valide            ;           //数据有效信号
 
 //*****************************************************
 //**                    main code
@@ -167,14 +167,61 @@ assign  lcd_en = ((h_cnt >= h_sync + h_back) && (h_cnt < h_sync + h_back + h_dis
                   ? 1'b1 : 1'b0;
 
 //请求像素点颜色数据输入  
-assign data_req = ((h_cnt >= h_sync + h_back - 1'b1) && (h_cnt < h_sync + h_back + h_disp - 1'b1)
+assign data_valide = ((h_cnt >= h_sync + h_back - 1'b1) && (h_cnt < h_sync + h_back + h_disp - 1'b1)
                   && (v_cnt >= v_sync + v_back) && (v_cnt < v_sync + v_back + v_disp)) 
                   ? 1'b1 : 1'b0;
 
 //像素点坐标  
-assign pixel_xpos = data_req ? (h_cnt - (h_sync + h_back - 1'b1)) : 11'd0;
-assign pixel_ypos = data_req ? (v_cnt - (v_sync + v_back - 1'b1)) : 11'd0;
+assign pixel_xpos = data_valide ? (h_cnt - (h_sync + h_back - 1'b1)) : 11'd0;
+assign pixel_ypos = data_valide ? (v_cnt - (v_sync + v_back - 1'b1)) : 11'd0;
 
+
+
+
+
+
+/*
+
+
+localparam BLACK  = 16'b00000_000000_00000;     //RGB565 黑色
+//wire define
+wire    [10:0]  display_border_pos_l;           //左侧边界的横坐标
+wire    [10:0]  display_border_pos_r;           //右侧边界的横坐标
+wire    [10:0]  display_border_pos_t;           //上侧边界的横坐标
+wire    [10:0]  display_border_pos_b;           //下侧边界的横坐标
+
+//左侧边界的横坐标计算 (800-640)/2-1 = 79
+assign display_border_pos_l  = ((h_disp - `LCD_IN_H_DISP)==0 ? 0 : ( (h_disp - `LCD_IN_H_DISP)/2-1 ) );
+//右侧边界的横坐标计算 640 + (800-640)/2-1 = 719
+assign display_border_pos_r = `LCD_IN_H_DISP + display_border_pos_l;
+
+// 上侧边界的横坐标计算 (800-640)/2-1 = 79
+assign display_border_pos_t  = ((v_disp - `LCD_IN_V_DISP)==0 ? 0 : ( (v_disp - `LCD_IN_V_DISP)/2-1 ));
+// 下侧边界的横坐标计算 640 + (800-640)/2-1 = 719
+assign display_border_pos_b = `LCD_IN_V_DISP + display_border_pos_t;
+
+
+//请求像素点颜色数据输入 范围:79~718，共640个时钟周期
+assign data_req = ((pixel_xpos >= display_border_pos_l) &&
+                  (pixel_xpos < display_border_pos_r) &&
+				  (pixel_ypos >= display_border_pos_t) &&
+				  (pixel_ypos < display_border_pos_b) &&
+				  (data_valide)) ? 1'b1 : 1'b0;
+
+//在数据有效范围内，将摄像头采集的数据赋值给LCD像素点数据
+assign lcd_rgb = data_val ? pixel_data : BLACK;
+
+//有效数据滞后于请求信号一个时钟周期,所以数据有效信号在此延时一拍
+reg             data_val            ;           //数据有效信号
+always @(posedge lcd_pclk or negedge rst_n) begin
+    if(!rst_n)
+        data_val <= 1'b0;
+    else
+        data_val <= data_req;    
+end   
+
+
+*/
 
 
 
@@ -182,6 +229,7 @@ assign pixel_ypos = data_req ? (v_cnt - (v_sync + v_back - 1'b1)) : 11'd0;
 
 //RGB565数据输出
 assign lcd_rgb = lcd_en ? pixel_data : 16'd0;
+assign data_req = data_valide;
 
 //行计数器对像素时钟计数
 always@ (posedge lcd_pclk or negedge rst_n) begin

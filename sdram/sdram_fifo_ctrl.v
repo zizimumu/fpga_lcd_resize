@@ -23,6 +23,7 @@ module sdram_fifo_ctrl(
 	input             clk_ref,		     //SDRAM控制器时钟
 	input             rst_n,			 //系统复位 
                                          
+	input		pingpong,
     //用户写端口                         
 	input             clk_write,		 //写端口FIFO: 写时钟 
 	input             wrf_wrreq,		 //写端口FIFO: 写请求 
@@ -56,6 +57,8 @@ module sdram_fifo_ctrl(
 	input             sdram_rd_ack,	     //sdram 读响应
 	output reg [23:0] sdram_rd_addr,	     //sdram 读地址 
 	input      [`SDRAM_DATA_WIDTH-1:0] sdram_dout 		 //从SDRAM中读出的数据 
+	
+	
     );
 
 //reg define
@@ -151,32 +154,96 @@ always @(posedge clk_ref or negedge rst_n) begin
 end
 
 //sdram写地址产生模块
+reg 	    pingpong_flag;
+reg        sw_bank_en;                   //切换BANK使能信号
+reg        rw_bank_flag;                 //读写bank的标志
+reg r_rw_bank_flag ;
+reg r_pingpong_flag;
+
 always @(posedge clk_ref or negedge rst_n) begin
-	if(!rst_n)
-		sdram_wr_addr <= 24'd0;	
-    else if(wr_load_flag)                //检测到写端口复位信号时，写地址复位
+	if(!rst_n) begin
+		sdram_wr_addr <= 24'd0;
+		pingpong_flag <= 1'b0;
+		rw_bank_flag <= 1'b0;
+		sw_bank_en <= 1'b0;
+	end
+    else if(wr_load_flag) begin               //检测到写端口复位信号时，写地址复位
 		sdram_wr_addr <= wr_min_addr;	
+		pingpong_flag <= 1'b0;
+		rw_bank_flag <= 1'b0;
+		sw_bank_en <= 1'b0;
+	end
 	else if(write_done_flag) begin		 //若突发写SDRAM结束，更改写地址
-                                         //若未到达写SDRAM的结束地址，则写地址累加
-		if(sdram_wr_addr < wr_max_addr - wr_length)
-			sdram_wr_addr <= sdram_wr_addr + wr_length;
-            else                         //若已到达写SDRAM的结束地址，则回到写起始地址
-            sdram_wr_addr <= wr_min_addr;
-    end
+                                         //若未到达写SDRAM的结束地址，则写地址累加	 
+										 
+		if(!pingpong) begin 
+			if( sdram_wr_addr <  wr_max_addr - wr_length )
+				sdram_wr_addr <= sdram_wr_addr + wr_length;
+			else
+				sdram_wr_addr <= wr_min_addr;
+		end
+		else begin
+		
+			if( (sdram_wr_addr[19:0]) <  (wr_max_addr - wr_length) ) 
+				sdram_wr_addr <= sdram_wr_addr + wr_length;
+			else begin                         //若已到达写SDRAM的结束地址，则回到写起始地址
+
+				if(pingpong_flag) begin
+					// 存储到其他bank
+					sdram_wr_addr <= { 4'b0001,wr_min_addr[19:0]};
+					rw_bank_flag <= 1'b1;
+				end
+				else begin
+					sdram_wr_addr <= wr_min_addr;
+					rw_bank_flag <= 1'b0;
+				end
+					
+				pingpong_flag <= ~pingpong_flag;	
+			
+			end
+		end
+			
+	end
+	
+
 end
 
 //sdram读地址产生模块
+
 always @(posedge clk_ref or negedge rst_n) begin
-	if(!rst_n)
+	if(!rst_n) begin
 		sdram_rd_addr <= 24'd0;
-	else if(rd_load_flag)				 //检测到读端口复位信号时，读地址复位
+		r_rw_bank_flag <= 1'b0;
+		r_pingpong_flag <= 1'b0;
+	end
+	else if(rd_load_flag) begin				 //检测到读端口复位信号时，读地址复位
 		sdram_rd_addr <= rd_min_addr;
+		r_rw_bank_flag <= 1'b0;
+		r_pingpong_flag <= 1'b0;
+	end
 	else if(read_done_flag) begin        //突发读SDRAM结束，更改读地址
                                          //若未到达读SDRAM的结束地址，则读地址累加
-		if(sdram_rd_addr < rd_max_addr - rd_length)
-			sdram_rd_addr <= sdram_rd_addr + rd_length;
-		else                             //若已到达读SDRAM的结束地址，则回到读起始地址
-            sdram_rd_addr <= rd_min_addr;
+		if(!pingpong) begin
+			if( sdram_rd_addr  <  rd_max_addr - rd_length )
+				sdram_rd_addr <= sdram_rd_addr + rd_length;
+			else
+				sdram_rd_addr <= rd_min_addr;
+		end
+		else begin
+		
+		
+            if(sdram_rd_addr[19:0] < rd_max_addr - rd_length)
+                sdram_rd_addr <= sdram_rd_addr + rd_length;
+            else begin       
+			
+                                             
+				if(rw_bank_flag == 1'b1)
+					sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]};
+				else
+					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]};   
+
+            end  	
+		end
 	end
 end
 
