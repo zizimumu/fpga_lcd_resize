@@ -39,7 +39,12 @@ parameter BLUE  = 16'b00000_000000_11111;  //蓝色
 
 reg [31:0] counter;
 reg [`FIFO_WIDTH-1:0] write_color;
+reg [31:0] wr_counter;
 
+
+
+
+/*
 always @(posedge clk_50m or negedge rst_n) begin
     if(!rst_n) begin
         counter <= 32'd0;  
@@ -56,7 +61,7 @@ end
 
 reg        start_write; 
 reg			write_req;
-reg [31:0] wr_counter;
+
 always @(posedge clk_50m or negedge rst_n) begin
     if(!rst_n) begin
 		write_color <= BLACK;
@@ -93,18 +98,42 @@ always @(posedge clk_50m or negedge rst_n) begin
 		write_req <= write_req;
 end  
 
-
+reg [1:0]color_cnt;
 always @(posedge clk_50m or negedge rst_n) begin
     if(!rst_n) begin
         wr_counter <= 32'd0;  
+		color_cnt <= 0;
 	end
-    else if(write_req && (wr_counter <= `LCD_FRAME_LEN) ) begin
+    else if(sdram_init_done && (wr_counter <= `LCD_FRAME_LEN) ) begin
         wr_counter <= wr_counter + 1'b1;
 	end
     else begin
         wr_counter <= 32'd0;
+		color_cnt <= color_cnt + 1'b1;
 	end
 end  
+always @(posedge clk_50m or negedge rst_n) begin
+    if(!rst_n) begin
+        wr_counter <= 32'd0;  
+		color_cnt <= 0;
+	end
+    else if(color_cnt == 2'b00) begin
+		write_color <= RED;
+	end
+    else if(color_cnt == 2'b01) begin
+		write_color <= BLUE;
+	end
+    else if(color_cnt == 2'b10) begin
+		write_color <= GREEN;
+	end
+    else if(color_cnt == 2'b11) begin
+		write_color <= BLACK;
+	end
+    else begin
+		write_color <= BLACK;
+	end
+end  
+
 
 
 // fifo 写数据时，wr_en使能的同时要准备好数据
@@ -122,8 +151,69 @@ always @(posedge clk_50m or negedge rst_n) begin
 		wr_data <= 0;
 	end
 end  
+*/
 
-  
+
+
+reg [9:0]color_cnt;
+always @(posedge clk_50m or negedge rst_n) begin
+    if(!rst_n) begin
+        wr_counter <= 32'd0;  
+		color_cnt <= 0;
+	end
+    else if(sdram_init_done && (wr_counter <= `LCD_FRAME_LEN) ) begin
+        wr_counter <= wr_counter + 1'b1;
+	end
+    else if(sdram_init_done) begin
+        wr_counter <= 32'd0;
+		color_cnt <= color_cnt + 1'b1;
+		if(color_cnt >= 10'd800)
+			color_cnt <= 0;
+	end
+	else
+		wr_counter <= 32'd0;
+end  
+always @(posedge clk_50m or negedge rst_n) begin
+    if(!rst_n) begin
+		write_color <= BLACK;
+	end
+    else if(color_cnt == 10'd200) begin
+		write_color <= RED;
+	end
+    else if(color_cnt == 10'd400) begin
+		write_color <= BLUE;
+	end
+    else if(color_cnt == 10'd600) begin
+		write_color <= GREEN;
+	end
+    else if(color_cnt == 10'd800) begin
+		write_color <= BLACK;
+	end
+    else begin
+		write_color <= write_color;
+	end
+end  
+
+// fifo 写数据时，wr_en使能的同时要准备好数据
+always @(posedge clk_50m or negedge rst_n) begin
+    if(!rst_n) begin      
+        wr_en   <= 1'b0;
+        wr_data <= 0; //64'd0;
+    end
+    else if(wr_counter >= 1 && (wr_counter <= `LCD_FRAME_LEN)) begin
+		wr_en   <= 1'b1;            //写使能拉高
+		wr_data <=   write_color;  
+    end    
+	else begin
+		wr_en   <= 1'b0;            //写使能拉高
+		wr_data <= 0;
+	end
+end  
+
+
+
+
+
   
 
 wire          lcd_pclk  ;    //LCD像素时钟              

@@ -10,5 +10,5 @@
 `define	  LCD_V_FRONT    11'd22  //场显示前沿
 `define	  LCD_V_TOTAL    11'd525  //场扫描周期
 
-`define		LCD_IN_H_DISP 11'd800
-`define		LCD_IN_V_DISP 11'd480
+`define		LCD_IN_H_DISP 11'd600
+`define		LCD_IN_V_DISP 11'd400

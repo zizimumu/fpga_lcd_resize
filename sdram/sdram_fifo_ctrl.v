@@ -159,6 +159,8 @@ reg        sw_bank_en;                   //切换BANK使能信号
 reg        rw_bank_flag;                 //读写bank的标志
 reg r_rw_bank_flag ;
 reg r_pingpong_flag;
+reg [1:0] bank_read;
+reg [1:0] bank_write;
 
 always @(posedge clk_ref or negedge rst_n) begin
 	if(!rst_n) begin
@@ -166,12 +168,14 @@ always @(posedge clk_ref or negedge rst_n) begin
 		pingpong_flag <= 1'b0;
 		rw_bank_flag <= 1'b0;
 		sw_bank_en <= 1'b0;
+		bank_write <= 2'b00;
 	end
     else if(wr_load_flag) begin               //检测到写端口复位信号时，写地址复位
 		sdram_wr_addr <= wr_min_addr;	
 		pingpong_flag <= 1'b0;
 		rw_bank_flag <= 1'b0;
 		sw_bank_en <= 1'b0;
+		bank_write <= 2'b00;
 	end
 	else if(write_done_flag) begin		 //若突发写SDRAM结束，更改写地址
                                          //若未到达写SDRAM的结束地址，则写地址累加	 
@@ -188,6 +192,8 @@ always @(posedge clk_ref or negedge rst_n) begin
 				sdram_wr_addr <= sdram_wr_addr + wr_length;
 			else begin                         //若已到达写SDRAM的结束地址，则回到写起始地址
 
+			
+				/*
 				if(pingpong_flag) begin
 					// 存储到其他bank
 					sdram_wr_addr <= { 4'b0001,wr_min_addr[19:0]};
@@ -199,6 +205,28 @@ always @(posedge clk_ref or negedge rst_n) begin
 				end
 					
 				pingpong_flag <= ~pingpong_flag;	
+				*/
+				//if( (bank_write != 2'b11)) begin
+					if(sdram_wr_addr[20])
+						bank_write <= 2'b10;
+					else
+						bank_write <= 2'b01;
+				
+				//end
+				
+				if(bank_read[0]) begin
+					sdram_wr_addr <= { 4'b0001,wr_min_addr[19:0]};
+					//bank_write <= 2'b10;		
+				end
+				else if(bank_read[1]) begin
+					sdram_wr_addr <= wr_min_addr;
+					//bank_write <= 2'b01;	
+				end
+				else begin
+					sdram_wr_addr <= wr_min_addr;
+					//bank_write <= 2'b01;
+				end
+			
 			
 			end
 		end
@@ -209,17 +237,21 @@ always @(posedge clk_ref or negedge rst_n) begin
 end
 
 //sdram读地址产生模块
-
+reg [23:0]rd_addr;
 always @(posedge clk_ref or negedge rst_n) begin
 	if(!rst_n) begin
 		sdram_rd_addr <= 24'd0;
 		r_rw_bank_flag <= 1'b0;
 		r_pingpong_flag <= 1'b0;
+		bank_read <= 2'b00;
+		rd_addr <= 24'd0;
 	end
 	else if(rd_load_flag) begin				 //检测到读端口复位信号时，读地址复位
 		sdram_rd_addr <= rd_min_addr;
 		r_rw_bank_flag <= 1'b0;
 		r_pingpong_flag <= 1'b0;
+		bank_read <= 2'b00;
+		rd_addr <= rd_min_addr;
 	end
 	else if(read_done_flag) begin        //突发读SDRAM结束，更改读地址
                                          //若未到达读SDRAM的结束地址，则读地址累加
@@ -235,14 +267,68 @@ always @(posedge clk_ref or negedge rst_n) begin
             if(sdram_rd_addr[19:0] < rd_max_addr - rd_length)
                 sdram_rd_addr <= sdram_rd_addr + rd_length;
             else begin       
-			
-                                             
+			    /*
 				if(rw_bank_flag == 1'b1)
 					sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]};
 				else
 					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]};   
-
+				*/
+				// 正在写的块
+				if(  (sdram_wr_req && (sdram_wr_addr[19:0] == wr_min_addr[19:0]) ) || 
+					( (sdram_wr_addr[19:0] < wr_max_addr - wr_length)&&(sdram_wr_addr[19:0] > wr_min_addr[19:0]) )) begin
+					if(sdram_wr_addr[20]) begin
+						sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
+						bank_read <= 2'b10;		
+						rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
+					end
+					else begin
+						sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
+						bank_read <= 2'b01;		
+						rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
+					end
+				end
+				// 没有正在写的块，找继续使用上次读取的块
+				else begin
+				
+				/*
+					if(bank_write[1]) begin
+						sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
+						bank_read <= 2'b10;		
+						rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
+					end
+					else begin
+						sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
+						bank_read <= 2'b01;		
+						rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
+					end
+				*/
+				
+					sdram_rd_addr <= rd_addr;
+					
+				end
+				
+				
+				
+/*				
+				if(bank_write[0]) begin
+					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
+					bank_read <= 2'b01;
+				end
+				else if(bank_write[1]) begin
+					sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
+					bank_read <= 2'b10;
+				end
+				else begin
+					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]};
+					bank_read <= 2'b01;
+				end
+*/				
+				
+					
+					
+					
             end  	
+			
 		end
 	end
 end

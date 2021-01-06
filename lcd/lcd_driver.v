@@ -180,7 +180,7 @@ assign pixel_ypos = data_valide ? (v_cnt - (v_sync + v_back - 1'b1)) : 11'd0;
 
 
 
-/*
+
 
 
 localparam BLACK  = 16'b00000_000000_00000;     //RGB565 黑色
@@ -221,15 +221,19 @@ always @(posedge lcd_pclk or negedge rst_n) begin
 end   
 
 
-*/
+
 
 
 
 
 
 //RGB565数据输出
-assign lcd_rgb = lcd_en ? pixel_data : 16'd0;
-assign data_req = data_valide;
+// assign lcd_rgb = lcd_en ? pixel_data : 16'd0;
+// assign data_req = data_valide;
+
+
+
+
 
 //行计数器对像素时钟计数
 always@ (posedge lcd_pclk or negedge rst_n) begin
