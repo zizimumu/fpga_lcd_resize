@@ -266,16 +266,34 @@ always @(posedge clk_ref or negedge rst_n) begin
 		
             if(sdram_rd_addr[19:0] < rd_max_addr - rd_length)
                 sdram_rd_addr <= sdram_rd_addr + rd_length;
-            else begin       
-			    /*
-				if(rw_bank_flag == 1'b1)
-					sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]};
-				else
-					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]};   
-				*/
+            else begin    
+
+				if(bank_read[1]) begin
+					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
+					bank_read <= 2'b01;						
+				end
+				else if(bank_read[0]) begin
+					sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
+					bank_read <= 2'b10;					
+				end
+				else if(bank_read == 2'b00) begin
+					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
+					bank_read <= 2'b01;					
+				end
+
+
+
+
+
+
+
+
+
+			
+				/*
 				// 正在写的块
-				if(  (sdram_wr_req && (sdram_wr_addr[19:0] == wr_min_addr[19:0]) ) || 
-					( (sdram_wr_addr[19:0] < wr_max_addr - wr_length)&&(sdram_wr_addr[19:0] > wr_min_addr[19:0]) )) begin
+				if(  ( sdram_wr_ack ) || 
+					( (sdram_wr_addr[19:0] <= wr_max_addr)&&(sdram_wr_addr[19:0] > wr_min_addr[19:0]) )    ) begin
 					if(sdram_wr_addr[20]) begin
 						sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
 						bank_read <= 2'b10;		
@@ -290,43 +308,12 @@ always @(posedge clk_ref or negedge rst_n) begin
 				// 没有正在写的块，找继续使用上次读取的块
 				else begin
 				
-				/*
-					if(bank_write[1]) begin
-						sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
-						bank_read <= 2'b10;		
-						rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
-					end
-					else begin
-						sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
-						bank_read <= 2'b01;		
-						rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
-					end
-				*/
-				
 					sdram_rd_addr <= rd_addr;
 					
 				end
 				
-				
-				
-/*				
-				if(bank_write[0]) begin
-					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]}; 
-					bank_read <= 2'b01;
-				end
-				else if(bank_write[1]) begin
-					sdram_rd_addr <= {4'b0001,rd_min_addr[19:0]}; 
-					bank_read <= 2'b10;
-				end
-				else begin
-					sdram_rd_addr <= {4'b0000,rd_min_addr[19:0]};
-					bank_read <= 2'b01;
-				end
-*/				
-				
-					
-					
-					
+				*/
+	
             end  	
 			
 		end

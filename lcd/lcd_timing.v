@@ -10,5 +10,5 @@
 `define	  LCD_V_FRONT    11'd22  //场显示前沿
 `define	  LCD_V_TOTAL    11'd525  //场扫描周期
 
-`define		LCD_IN_H_DISP 11'd600
-`define		LCD_IN_V_DISP 11'd400
+`define		LCD_IN_H_DISP 11'd796  // 至少少于最大显示分辨率 -4
+`define		LCD_IN_V_DISP 11'd476   //

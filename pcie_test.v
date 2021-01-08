@@ -31,7 +31,7 @@ module pcie_test
 
 
 `define		SDRAM_TEST_LEN		    24'h400000  // 4M * 64bit, 该值最大为24bit
-`define		SDRAM_FULL_PAGE_BURST_LEN 10'd256
+
 
 
 wire clk_100m_out;
@@ -153,9 +153,11 @@ lcd_rgb_colorbar u_lcd_rgb_colorbar(
     
     ); 
 */	
+// `define IN_FRAME_LEN 60160
+// `define OUT_FRAME_LEN 60160
 
-`define IN_FRAME_LEN (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/8)
-`define OUT_FRAME_LEN (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/8)
+`define IN_FRAME_LEN ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)
+`define OUT_FRAME_LEN ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)
 
 sdram_top u_sdram_top(
 	.ref_clk			(clk_100m_ctl),			//sdram	控制器参考时钟
