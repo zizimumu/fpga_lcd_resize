@@ -58,7 +58,8 @@ wire [3:0]		cycle_countor;				// 测试周期计数
 wire 		fifo_wr_clk;
 wire		fifo_clr;
 wire		lcd_init_done;
-
+wire		[10:0]	lcd_in_v_disp;
+wire		[10:0]	lcd_in_h_disp;
 
 assign sys_rst_n = i_sys_rst_n & locked;
 
@@ -167,8 +168,8 @@ lcd_rgb_colorbar u_lcd_rgb_colorbar(
 // `define IN_FRAME_LEN 60160
 // `define OUT_FRAME_LEN 60160
 
-`define IN_FRAME_LEN ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)
-`define OUT_FRAME_LEN ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)
+// `define IN_FRAME_LEN ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)
+// `define OUT_FRAME_LEN ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)
 
 
 /*
@@ -239,8 +240,15 @@ lcd_data u_lcd_data(
 
 	*/
 	
+`define IN_FRAME_LEN ( (`LCD_IN_H_DISP_S*`LCD_IN_V_DISP_S*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)
 
 
+
+wire [23:0] frame_len;
+wire sdram_read_valid;
+assign  frame_len = ( (lcd_in_h_disp*lcd_in_v_disp*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN - 1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN)	;
+assign sdram_read_valid = (lcd_in_h_disp!=0 && lcd_in_v_disp !=0) ?  1'b1: 1'b0;
+// assign sdram_read_valid = 1'b1;
 
 sdram_top u_sdram_top(
 	.ref_clk			(clk_100m_ctl),			//sdram	控制器参考时钟
@@ -253,7 +261,7 @@ sdram_top u_sdram_top(
 	.wr_en				(wr_en),			//写端口FIFO: 写使能
 	.wr_data		    (wr_data),		    //写端口FIFO: 写数据
 	.wr_min_addr		(24'd0),			//写SDRAM的起始地址
-	.wr_max_addr		(`IN_FRAME_LEN),		    //写SDRAM的结束地址,地址以sdram位宽为单位
+	.wr_max_addr		(frame_len),		    //写SDRAM的结束地址,地址以sdram位宽为单位
 	.wr_len			    (`SDRAM_FULL_PAGE_BURST_LEN),			//写SDRAM时的数据突发长度
 	.wr_load			(fifo_clr),		//写端口复位: 复位写地址,清空写FIFO
    
@@ -262,12 +270,12 @@ sdram_top u_sdram_top(
     .rd_en				(rd_en),			//读端口FIFO: 读使能
 	.rd_data	    	(rd_data),		    //读端口FIFO: 读数据
 	.rd_min_addr		(24'd0),			//读SDRAM的起始地址
-	.rd_max_addr		(`IN_FRAME_LEN),	    	//读SDRAM的结束地址，地址以sdram位宽为单位
+	.rd_max_addr		(frame_len),	    	//读SDRAM的结束地址，地址以sdram位宽为单位
 	.rd_len 			(`SDRAM_FULL_PAGE_BURST_LEN),			//从SDRAM中读数据时的突发长度
 	.rd_load			(~sys_rst_n),		//读端口复位: 复位读地址,清空读FIFO
 	   
      //用户控制端口  
-	.sdram_read_valid	(1'b1),             //SDRAM 读使能
+	.sdram_read_valid	(sdram_read_valid),             //SDRAM 读使能
 	.sdram_init_done	(sdram_init_done),	//SDRAM 初始化完成标志
    
 	//SDRAM 芯片接口
@@ -283,7 +291,8 @@ sdram_top u_sdram_top(
 	.sdram_dqm			(sd_dqm)         //SDRAM 数据掩码
     );
 
-	
+
+
 lcd_input_output u_lcd_input_output (
 	.clk_50m				(i_fpga_clk_50m),          //时钟
 	.rst_n				(sys_rst_n),            //复位,低有效
@@ -293,7 +302,7 @@ lcd_input_output u_lcd_input_output (
 	.wr_data				(wr_data),          //SDRAM 写入的数据
 	.rd_data				(rd_data),          //SDRAM 读出的数据
 	.sdram_init_done		(sdram_init_done),  //SDRAM 初始化完成标志
-	
+
 	.lcd_de				(o_lcd_de),      //LCD 数据使能信号
 	.lcd_hs				(o_lcd_hs),      //LCD 行同步信号
 	.lcd_vs				(o_lcd_vs),      //LCD 场同步信号
@@ -309,8 +318,65 @@ lcd_input_output u_lcd_input_output (
 	.lcd_hs_i			(i_lcd_hs),      //LCD 行同步信号
 	.lcd_vs_i			(i_lcd_vs),      //LCD 场同步信号
 	.lcd_pclk_i			(i_lcd_clk),     //LCD 像素时钟
-	.lcd_rgb_i			(i_lcd_rgb)     //LCD RGB565颜色数据	
+	.lcd_rgb_i			(i_lcd_rgb),     //LCD RGB565颜色数据	
+	.lcd_in_v_disp			(lcd_in_v_disp),
+	.lcd_in_h_disp			(lcd_in_h_disp),
+	.lcd_init_done		(lcd_init_done)
     );
+
+	
+	
+
+	
+	
+/*  test 
+//reg [31:0] cnt;	
+reg [9:0] cnt1 ;
+reg [3:0] cnt2 ;
+
+(* dont_touch = "true" *) wire [31:0]add ;
+(* dont_touch = "true" *) wire [31:0]mult ;
+(* dont_touch = "true" *) wire [31:0]div ;
+(* dont_touch = "true" *) wire [31:0]div_mul ;
+
+assign add = cnt1 + cnt2;
+assign mult = cnt1*cnt2;
+assign div = cnt1/cnt2;
+assign div_mul = cnt1*cnt2 / 5;
+	
+always @(posedge i_fpga_clk_50m or negedge sys_rst_n) begin
+    if(!sys_rst_n) begin
+		cnt1 <= 0;
+		cnt2 <= 0;
+		// cnt <= 0;
+	end
+    else begin
+		cnt1 <= cnt1 + 1'b1;
+		cnt2 <= cnt2 + 1'b1;
+	end
+
+ 
+end  
+
+
+always @(posedge i_fpga_clk_50m or negedge sys_rst_n) begin
+    if(!sys_rst_n) begin
+		o_fpga_led <= 4'b0000;
+	end
+    else if (mult == 32'd5 )begin
+		
+		o_fpga_led <= 4'b1110;
+	end
+	else if(div == 2)
+		o_fpga_led <= 4'b1111;
+		
+	else if(div_mul == 3)
+		o_fpga_led <= 4'b1100;
+
+ 
+end 
+
+*/
 
 
 endmodule

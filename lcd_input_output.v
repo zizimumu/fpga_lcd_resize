@@ -33,7 +33,12 @@ module lcd_input_output
     input               	lcd_vs_i,      //LCD 场同步信号
 
     input               	lcd_pclk_i,     //LCD 像素时钟
-    input       [23:0]  	lcd_rgb_i     //LCD RGB565颜色数据	
+    input       [23:0]  	lcd_rgb_i,     //LCD RGB565颜色数据	
+	
+	output	    [19:0]		fifo_left,
+	output 					lcd_init_done,
+	output		[10:0]	lcd_in_v_disp,
+	output		[10:0]	lcd_in_h_disp
     );
 
 //parameter define  
@@ -54,9 +59,9 @@ parameter BLUE  = 16'b00000_000000_11111;  //蓝色
 
 
 
-wire 	lcd_init_done;
-wire		[10:0]	v_disp;
-wire		[10:0]	h_disp;
+// wire 	lcd_init_done;
+//wire		[10:0]	v_disp;
+//wire		[10:0]	h_disp;
 
 lcd_input u_lcd_input(
 	.rst_n			(rst_n),       //复位，低电平有效
@@ -65,9 +70,10 @@ lcd_input u_lcd_input(
 	.write_req		(wr_en),
 	.fifo_clr		(fifo_clr),
 	.write_clk		(fifo_wr_clk),
-	.v_disp			(v_disp),
-	.h_disp			(h_disp),
+	.v_disp			(lcd_in_v_disp),
+	.h_disp			(lcd_in_h_disp),
 	.init_done		(lcd_init_done),
+	.fifo_left_s		(fifo_left),
 
 	.lcd_de_i		(lcd_de_i),      //LCD 数据使能信号
 	.lcd_hs_i		(lcd_hs_i),      //LCD 行同步信号
@@ -114,13 +120,19 @@ clk_div u_clk_div(
 //LCD驱动模块
 lcd_driver u_lcd_driver(
     .lcd_pclk      (lcd_pclk  ),
-    .rst_n         (rst_n ),
+    .rst_n         (lcd_init_done&rst_n ),
     .lcd_id        (`LCD_ID    ),
     .pixel_data    (rd_data),
     .pixel_xpos    (pixel_xpos),
     .pixel_ypos    (pixel_ypos),
 	.data_req		(rd_en),
 
+	.i_h_disp		(lcd_in_h_disp),      //LCD屏水平分辨率
+    .i_v_disp		(lcd_in_v_disp),      //LCD屏垂直分辨率  
+    .input_done		(lcd_init_done),      //LCD屏垂直分辨率   
+	.fifo_left_s	(fifo_left),
+	
+	
     .lcd_de        (lcd_de    ),
     .lcd_hs        (lcd_hs    ),
     .lcd_vs        (lcd_vs    ),   

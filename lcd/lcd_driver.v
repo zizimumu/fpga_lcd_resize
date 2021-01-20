@@ -40,8 +40,12 @@ module lcd_driver(
     output     reg       lcd_bl,      //LCD 背光控制信号
     output               lcd_clk,     //LCD 像素时钟
     output       [15:0]  lcd_rgb,     //LCD RGB565颜色数据
-    output     reg       lcd_rst
-  
+    output     reg       lcd_rst,
+	
+    input    [10:0]  i_h_disp,      //LCD屏水平分辨率
+    input    [10:0]  i_v_disp,      //LCD屏垂直分辨率  
+    input      input_done,     //LCD屏垂直分辨率   
+	input	    [19:0]		fifo_left_s	
     );
 
 
@@ -58,7 +62,7 @@ reg  [10:0] v_cnt  ;
 //wire define    
 wire        lcd_en;
 wire             data_valide            ;           //数据有效信号
-
+// wire [19:0]fifo_left_s;
 //*****************************************************
 //**                    main code
 //*****************************************************
@@ -114,22 +118,23 @@ reg read_fifo_left;
 reg             data_val            ;           //数据有效信号
 localparam BLACK  = 16'b00000_000000_00000;     //RGB565 黑色
 //wire define
-// wire    [10:0]  display_border_pos_l;           //左侧边界的横坐标
-// wire    [10:0]  display_border_pos_r;           //右侧边界的横坐标
-// wire    [10:0]  display_border_pos_t;           //上侧边界的横坐标
-// wire    [10:0]  display_border_pos_b;           //下侧边界的横坐标
+wire    [10:0]  display_border_pos_l;           //左侧边界的横坐标
+wire    [10:0]  display_border_pos_r;           //右侧边界的横坐标
+wire    [10:0]  display_border_pos_t;           //上侧边界的横坐标
+wire    [10:0]  display_border_pos_b;           //下侧边界的横坐标
 
 //左侧边界的横坐标计算 (800-640)/2-1 = 79
-parameter display_border_pos_l  =  ( 1 + (h_disp - `LCD_IN_H_DISP)/2  );
+assign display_border_pos_l  =  ( 1 + (h_disp - i_h_disp)/2  );
 //右侧边界的横坐标计算 640 + (800-640)/2-1 = 719
-parameter display_border_pos_r = `LCD_IN_H_DISP + display_border_pos_l;
+assign display_border_pos_r = i_h_disp + display_border_pos_l;
 
 // 上侧边界的横坐标计算 (800-640)/2-1 = 79
-parameter display_border_pos_t  = ( 1+ (v_disp - `LCD_IN_V_DISP)/2 );
+assign display_border_pos_t  = ( 1+ (v_disp - i_v_disp)/2 );
 // 下侧边界的横坐标计算 640 + (800-640)/2-1 = 719
-parameter display_border_pos_b = `LCD_IN_V_DISP + display_border_pos_t;
+assign display_border_pos_b = i_v_disp + display_border_pos_t;
 
-
+// `define LCD_FRAME_LEN_MAX_S ( (i_h_disp*i_v_disp*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN-1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_WIDTH_BYTE / 2)
+// assign fifo_left_s =  (( `LCD_FRAME_LEN_MAX_S - i_h_disp*i_v_disp ));
 
 
 //有效数据滞后于请求信号一个时钟周期,所以数据有效信号在此延时一拍
@@ -153,7 +158,7 @@ always @(posedge lcd_pclk or negedge rst_n) begin
 		read_fifo_left <= 1'b0;
 		cnt_fifo <= 0;
 	end
-    else if( `FIFO_LEFT  != 0   &&   (v_cnt - (v_sync + v_back - 1'b1)  ) >=  (display_border_pos_b) ) begin
+    else if( input_done && `FIFO_LEFT  != 0   &&   (v_cnt - (v_sync + v_back - 1'b1)  ) >=  (display_border_pos_b) ) begin
 		if (cnt_fifo >= 1 && cnt_fifo <= `FIFO_LEFT) begin
 			read_fifo_left <= 1'b1;
 		end
@@ -173,16 +178,16 @@ end
 
 
 //请求像素点颜色数据输入 范围:79~718，共640个时钟周期
- assign data_req = ( ((pixel_xpos >= display_border_pos_l) &&
-                   (pixel_xpos < display_border_pos_r) &&
- 				  (pixel_ypos >= display_border_pos_t) &&
- 				  (pixel_ypos < display_border_pos_b) ) || read_fifo_left ) ? 1'b1 : 1'b0;
+  assign data_req = ( ( ((pixel_xpos >= display_border_pos_l) &&
+                    (pixel_xpos < display_border_pos_r) &&
+  				  (pixel_ypos >= display_border_pos_t) &&
+  				  (pixel_ypos < display_border_pos_b) ) || read_fifo_left )  && input_done
+ 				  ) ? 1'b1 : 1'b0;
 
-			  
 				  
 //在数据有效范围内，将摄像头采集的数据赋值给LCD像素点数据
-assign lcd_rgb = ( data_val && (!read_fifo_left) )? pixel_data : BLACK;
-
+assign lcd_rgb = ( data_val && (!read_fifo_left) && input_done)? pixel_data : BLACK;
+//assign lcd_rgb = ( data_val && (!read_fifo_left) )? pixel_data : BLACK;
 
 
 
