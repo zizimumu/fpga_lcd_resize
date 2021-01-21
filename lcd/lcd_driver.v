@@ -141,8 +141,6 @@ end
 
 
 
-// `define LCD_FRAME_LEN_MAX ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN-1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_WIDTH_BYTE / 2)
-// `define FIFO_LEFT  (( `LCD_FRAME_LEN_MAX - `LCD_IN_H_DISP*`LCD_IN_V_DISP ))
 
 // 处理帧数据不是burst len对齐的问题
 reg [31:0] cnt_fifo;
@@ -151,8 +149,8 @@ always @(posedge lcd_pclk or negedge rst_n) begin
 		read_fifo_left <= 1'b0;
 		cnt_fifo <= 0;
 	end
-    else if( input_done && `FIFO_LEFT  != 0   && v_cnt > (v_sync + v_back - 1'b1)  &&  (v_cnt - (v_sync + v_back - 1'b1)  ) >=  (display_border_pos_b) ) begin
-		if (cnt_fifo >= 1 && cnt_fifo <= `FIFO_LEFT) begin
+    else if( input_done && fifo_left_s  != 0   && v_cnt > (v_sync + v_back - 1'b1)  &&  (v_cnt - (v_sync + v_back - 1'b1)  ) >=  (display_border_pos_b) ) begin
+		if (cnt_fifo >= 1 && cnt_fifo <= fifo_left_s) begin
 			read_fifo_left <= 1'b1;
 		end
 		else
