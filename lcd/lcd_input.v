@@ -210,7 +210,7 @@ end
 // `define LCD_FRAME_LEN_MAX ( (`LCD_IN_H_DISP*`LCD_IN_V_DISP*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN-1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_WIDTH_BYTE / 2)
 // `define FIFO_LEFT  (( `LCD_FRAME_LEN_MAX - `LCD_IN_H_DISP*`LCD_IN_V_DISP ))
 
-`define LCD_FRAME_LEN_MAX_SS ( (h_disp*v_disp*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN-1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_WIDTH_BYTE / 2)
+ `define LCD_FRAME_LEN_MAX_SS ( (h_disp*v_disp*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN-1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_WIDTH_BYTE / 2)
 assign fifo_left_s =  (( `LCD_FRAME_LEN_MAX_SS - h_disp*v_disp ));
 
 
@@ -219,8 +219,8 @@ always @(posedge lcd_pclk_i or negedge rst_n) begin
 		wr_fifo_left <= 1'b0;
 		cnt_fifo <= 0;
 	end
-    else if( `FIFO_LEFT  != 0   &&   write_fifo_req ) begin
-		if (cnt_fifo >= 1 && cnt_fifo <= `FIFO_LEFT) begin
+    else if( fifo_left_s  != 0   &&   write_fifo_req ) begin
+		if (cnt_fifo >= 1 && cnt_fifo <= fifo_left_s) begin
 			wr_fifo_left <= 1'b1;
 		end
 		else
