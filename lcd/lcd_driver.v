@@ -123,18 +123,11 @@ wire    [10:0]  display_border_pos_r;           //右侧边界的横坐标
 wire    [10:0]  display_border_pos_t;           //上侧边界的横坐标
 wire    [10:0]  display_border_pos_b;           //下侧边界的横坐标
 
-//左侧边界的横坐标计算 (800-640)/2-1 = 79
+
 assign display_border_pos_l  =  ( 1 + (h_disp - i_h_disp)/2  );
-//右侧边界的横坐标计算 640 + (800-640)/2-1 = 719
 assign display_border_pos_r = i_h_disp + display_border_pos_l;
-
-// 上侧边界的横坐标计算 (800-640)/2-1 = 79
 assign display_border_pos_t  = ( 1+ (v_disp - i_v_disp)/2 );
-// 下侧边界的横坐标计算 640 + (800-640)/2-1 = 719
 assign display_border_pos_b = i_v_disp + display_border_pos_t;
-
-// `define LCD_FRAME_LEN_MAX_S ( (i_h_disp*i_v_disp*2/`SDRAM_WIDTH_BYTE + `SDRAM_FULL_PAGE_BURST_LEN-1) / `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_FULL_PAGE_BURST_LEN * `SDRAM_WIDTH_BYTE / 2)
-// assign fifo_left_s =  (( `LCD_FRAME_LEN_MAX_S - i_h_disp*i_v_disp ));
 
 
 //有效数据滞后于请求信号一个时钟周期,所以数据有效信号在此延时一拍
@@ -158,7 +151,7 @@ always @(posedge lcd_pclk or negedge rst_n) begin
 		read_fifo_left <= 1'b0;
 		cnt_fifo <= 0;
 	end
-    else if( input_done && `FIFO_LEFT  != 0   &&   (v_cnt - (v_sync + v_back - 1'b1)  ) >=  (display_border_pos_b) ) begin
+    else if( input_done && `FIFO_LEFT  != 0   && v_cnt > (v_sync + v_back - 1'b1)  &&  (v_cnt - (v_sync + v_back - 1'b1)  ) >=  (display_border_pos_b) ) begin
 		if (cnt_fifo >= 1 && cnt_fifo <= `FIFO_LEFT) begin
 			read_fifo_left <= 1'b1;
 		end
